@@ -1,0 +1,686 @@
+/*
+ * Styling for the Study Organizer window.
+ *
+ * JavaFX uses a dialect of CSS. Property names are prefixed with -fx- and only
+ * the properties JavaFX defines are understood; it is not full web CSS.
+ *
+ * ---------------------------------------------------------------------------
+ * How the light/dark switch works
+ * ---------------------------------------------------------------------------
+ * JavaFX supports "looked-up colours": a custom property such as -color-bg can
+ * be declared on an ancestor and then referred to by any descendant. A value
+ * declared further down the tree wins.
+ *
+ * So the whole palette is declared once per theme below. ThemeManager puts the
+ * matching class on the scene root, and every control underneath restyles itself
+ * at once. Nothing else in the stylesheet needs to know which theme is active —
+ * the rules further down all refer to the names, never to literal colours.
+ *
+ * ---------------------------------------------------------------------------
+ * Two rules that keep the lookups from failing
+ * ---------------------------------------------------------------------------
+ * 1. THE DEFAULT PALETTE ON .root IS NOT OPTIONAL. A looked-up colour that
+ *    resolves to nothing is not ignored: JavaFX hands the literal text
+ *    "-color-bg" to the property and logs a ClassCastException. That happens in
+ *    the window between the scene being built and the theme class being applied,
+ *    so .root declares a full palette of its own as the floor. The .theme-*
+ *    blocks come afterwards and, at equal specificity, later wins.
+ *
+ * 2. THE SELECTORS ARE .theme-dark, NOT .root.theme-dark. A pop-up — a context
+ *    menu, a dialog — is its own scene with its own root, so it cannot see the
+ *    main window's classes. Those nodes are given the theme class directly in
+ *    code, and a selector that also demanded .root would never match them.
+ *
+ * The one place none of this reaches is the stopwatch dial, which is painted on
+ * a Canvas. Its colours live in Theme.java instead. Keep the two in step.
+ */
+
+/* --------------------------------------------------------------- palettes */
+
+/*
+ * The floor. Every colour name used anywhere in this file must be defined here,
+ * or the first CSS pass fails before a theme is applied. These values match the
+ * dark theme, which is the application's default.
+ */
+.root {
+    -color-bg:            #211d1b;
+    -color-surface:       #2b2724;
+    -color-surface-alt:   #343029;
+    -color-border:        #3d3733;
+    -color-text:          #f2efec;
+    -color-text-dim:      #a29890;
+    -color-accent:        #ff5722;
+    -color-accent-hover:  #ff7043;
+    -color-accent-text:   #ffffff;
+    -color-danger:        #ff8a80;
+    -color-danger-bg:     #4a2621;
+}
+
+.theme-light {
+    -color-bg:            #f6f7f9;
+    -color-surface:       #ffffff;
+    -color-surface-alt:   #f0f2f5;
+    -color-border:        #e3e6ea;
+    -color-text:          #1f2933;
+    -color-text-dim:      #6b7580;
+    -color-accent:        #ff5722;
+    -color-accent-hover:  #e64a19;
+    -color-accent-text:   #ffffff;
+    -color-danger:        #b42318;
+    -color-danger-bg:     #fee4e2;
+}
+
+.theme-dark {
+    -color-bg:            #211d1b;
+    -color-surface:       #2b2724;
+    -color-surface-alt:   #343029;
+    -color-border:        #3d3733;
+    -color-text:          #f2efec;
+    -color-text-dim:      #a29890;
+    -color-accent:        #ff5722;
+    -color-accent-hover:  #ff7043;
+    -color-accent-text:   #ffffff;
+    -color-danger:        #ff8a80;
+    -color-danger-bg:     #4a2621;
+}
+
+/* ------------------------------------------------------------------- base */
+
+.root {
+    -fx-font-family: "Segoe UI", "Helvetica Neue", Arial, sans-serif;
+    -fx-font-size: 13px;
+    -fx-background-color: -color-bg;
+}
+
+.label {
+    -fx-text-fill: -color-text;
+}
+
+/* --------------------------------------------------------------- top bar */
+
+.top-bar {
+    -fx-background-color: -color-surface;
+    -fx-padding: 6 10 6 10;
+    -fx-border-color: transparent transparent -color-border transparent;
+    -fx-border-width: 0 0 1 0;
+}
+
+/* When the demo banner is present the whole strip turns amber, so the warning
+   is impossible to miss rather than being one small label in a corner. */
+.top-bar-demo {
+    -fx-background-color: #fef3c7;
+    -fx-border-color: transparent transparent #fcd34d transparent;
+}
+
+.demo-banner {
+    -fx-text-fill: #92400e;
+    -fx-font-size: 12px;
+    -fx-font-weight: bold;
+}
+
+.theme-toggle {
+    -fx-background-color: -color-surface-alt;
+    -fx-text-fill: -color-text-dim;
+    -fx-font-size: 12px;
+    -fx-padding: 5 12 5 12;
+    -fx-background-radius: 14;
+    -fx-cursor: hand;
+}
+
+.theme-toggle:hover {
+    -fx-text-fill: -color-text;
+}
+
+/* On the amber demo strip the normal grey-on-grey toggle washes out, so it
+   takes the banner's own colours instead. */
+.top-bar-demo .theme-toggle {
+    -fx-background-color: #fde68a;
+    -fx-text-fill: #92400e;
+    -fx-font-weight: bold;
+}
+
+.top-bar-demo .theme-toggle:hover {
+    -fx-background-color: #fcd34d;
+    -fx-text-fill: #7c2d12;
+}
+
+/* ------------------------------------------------------------------ tabs */
+
+.tab-pane {
+    -fx-background-color: -color-bg;
+}
+
+.tab-pane > .tab-header-area > .tab-header-background {
+    -fx-background-color: -color-surface;
+}
+
+.tab-pane .tab {
+    -fx-background-color: transparent;
+    -fx-padding: 8 18 8 18;
+}
+
+.tab-pane .tab:selected {
+    -fx-background-color: -color-bg;
+}
+
+.tab-pane .tab .tab-label {
+    -fx-text-fill: -color-text-dim;
+}
+
+.tab-pane .tab:selected .tab-label {
+    -fx-text-fill: -color-accent;
+    -fx-font-weight: bold;
+}
+
+/* Hides the focus ring JavaFX draws around the selected tab's content. */
+.tab-pane > .tab-content-area {
+    -fx-background-color: -color-bg;
+}
+
+/* ----------------------------------------------------------------- timer */
+
+.timer-pane {
+    -fx-background-color: -color-surface;
+    -fx-background-radius: 12;
+    -fx-border-radius: 12;
+    -fx-border-color: -color-border;
+    -fx-border-width: 1;
+}
+
+.readout-caption {
+    -fx-font-size: 13px;
+    -fx-text-fill: -color-text-dim;
+}
+
+/* The seconds caption is highlighted because seconds are the figure actually
+   moving - the same emphasis the reference stopwatch uses. */
+.readout-caption-accent {
+    -fx-text-fill: -color-accent;
+}
+
+/* Hours and minutes sit quietly until they matter. Monospace digits so the
+   number does not shuffle sideways as the values change. */
+.readout-dim {
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 44px;
+    -fx-text-fill: -color-text-dim;
+    -fx-opacity: 0.55;
+}
+
+.readout-seconds {
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 54px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-accent;
+}
+
+.readout-millis {
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 26px;
+    -fx-text-fill: -color-accent;
+    -fx-opacity: 0.75;
+}
+
+/* The round start / pause control at the centre of the dial. */
+.dial-button {
+    -fx-background-color: transparent;
+    -fx-background-radius: 200;
+    -fx-text-fill: -color-text;
+    -fx-font-size: 34px;
+    -fx-cursor: hand;
+    -fx-padding: 0;
+}
+
+.dial-button:hover {
+    -fx-text-fill: -color-accent;
+}
+
+.status-text {
+    -fx-font-size: 14px;
+    -fx-text-fill: -color-text-dim;
+}
+
+/* --------------------------------------------------------------- buttons */
+
+.action-button {
+    -fx-min-width: 100px;
+    -fx-padding: 8 18 8 18;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.primary-button {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: -color-accent-text;
+    -fx-font-weight: bold;
+}
+
+.primary-button:hover {
+    -fx-background-color: -color-accent-hover;
+}
+
+.danger-button {
+    -fx-background-color: -color-surface-alt;
+    -fx-text-fill: -color-danger;
+}
+
+.danger-button:hover {
+    -fx-background-color: -color-danger-bg;
+}
+
+/* A disabled button should look unavailable, not just be unclickable. */
+.action-button:disabled {
+    -fx-opacity: 0.4;
+}
+
+/* ----------------------------------------------------------- combo boxes */
+
+.combo-box {
+    -fx-background-color: -color-surface-alt;
+    -fx-background-radius: 6;
+}
+
+.combo-box .text-field {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-prompt-text-fill: -color-text-dim;
+}
+
+.combo-box-popup .list-view {
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
+}
+
+.combo-box-popup .list-cell {
+    -fx-background-color: -color-surface;
+    -fx-text-fill: -color-text;
+}
+
+.combo-box-popup .list-cell:hover {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: -color-accent-text;
+}
+
+/* ----------------------------------------------------------------- tiles */
+
+.stat-tile {
+    -fx-background-color: -color-surface;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -color-border;
+    -fx-border-width: 1;
+}
+
+.stat-caption {
+    -fx-font-size: 12px;
+    -fx-text-fill: -color-text-dim;
+}
+
+.stat-value {
+    -fx-font-size: 22px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-text;
+}
+
+.progress-bar {
+    -fx-background-color: transparent;
+}
+
+.weekly-progress > .track {
+    -fx-background-color: -color-surface-alt;
+    -fx-background-radius: 4;
+}
+
+.weekly-progress > .bar {
+    -fx-background-color: -color-accent;
+    -fx-background-radius: 4;
+}
+
+/* ---------------------------------------------------------------- charts */
+
+.chart-title {
+    -fx-font-size: 16px;
+    -fx-font-weight: bold;
+    -fx-text-fill: -color-text;
+}
+
+.chart {
+    -fx-background-color: -color-surface;
+    -fx-background-radius: 10;
+    -fx-padding: 12;
+}
+
+.chart-title-label,
+.chart .chart-title {
+    -fx-text-fill: -color-text;
+}
+
+.axis {
+    -fx-tick-label-fill: -color-text-dim;
+}
+
+.axis .axis-label {
+    -fx-text-fill: -color-text-dim;
+}
+
+.chart-plot-background {
+    -fx-background-color: transparent;
+}
+
+.chart-vertical-grid-lines,
+.chart-horizontal-grid-lines {
+    -fx-stroke: -color-border;
+}
+
+.chart-legend {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+}
+
+/* The default JavaFX series colours are a blue-heavy palette that clashes with
+   the orange accent, so the first few series are recoloured to match. */
+.default-color0.chart-bar { -fx-bar-fill: -color-accent; }
+.default-color1.chart-bar { -fx-bar-fill: #ffa726; }
+.default-color2.chart-bar { -fx-bar-fill: #66bb6a; }
+
+.default-color0.chart-series-line { -fx-stroke: -color-accent; }
+.default-color0.chart-line-symbol {
+    -fx-background-color: -color-accent, -color-surface;
+}
+
+.heatmap-label {
+    -fx-font-size: 11px;
+    -fx-text-fill: -color-text-dim;
+}
+
+.empty-state {
+    -fx-text-fill: -color-text-dim;
+    -fx-font-style: italic;
+    -fx-padding: 20;
+}
+
+/* ----------------------------------------------------------- history table */
+
+/* JavaFX ships a light table by default, so in dark mode every part of it has
+   to be recoloured explicitly - background, headers, rows, selection and the
+   dividing lines. Miss one and a white strip shows through. */
+
+.history-table {
+    -fx-background-color: -color-surface;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -color-border;
+    -fx-border-width: 1;
+    -fx-table-cell-border-color: -color-border;
+}
+
+.history-table .column-header-background {
+    -fx-background-color: -color-surface-alt;
+    -fx-background-radius: 10 10 0 0;
+}
+
+.history-table .column-header,
+.history-table .filler {
+    -fx-background-color: transparent;
+    -fx-border-color: transparent -color-border transparent transparent;
+    -fx-size: 34px;
+}
+
+.history-table .column-header .label {
+    -fx-text-fill: -color-text-dim;
+    -fx-font-weight: bold;
+    -fx-alignment: center-left;
+    -fx-padding: 0 8 0 8;
+}
+
+.history-table .table-row-cell {
+    -fx-background-color: -color-surface;
+    -fx-border-color: transparent transparent -color-border transparent;
+}
+
+/* A faint stripe on alternate rows, so the eye can follow a row across. */
+.history-table .table-row-cell:odd {
+    -fx-background-color: -color-surface-alt;
+}
+
+.history-table .table-row-cell:selected {
+    -fx-background-color: -color-accent;
+}
+
+.history-table .table-row-cell:selected .table-cell {
+    -fx-text-fill: -color-accent-text;
+}
+
+.history-table .table-cell {
+    -fx-text-fill: -color-text;
+    -fx-padding: 7 8 7 8;
+    -fx-border-color: transparent;
+}
+
+/* Empty rows below the data should not be striped - they are not records. */
+.history-table .table-row-cell:empty,
+.history-table .table-row-cell:empty:odd {
+    -fx-background-color: -color-surface;
+    -fx-border-color: transparent;
+}
+
+.history-table .table-row-cell:empty .table-cell {
+    -fx-border-color: transparent;
+}
+
+.text-field {
+    -fx-background-color: -color-surface-alt;
+    -fx-text-fill: -color-text;
+    -fx-prompt-text-fill: -color-text-dim;
+    -fx-background-radius: 6;
+    -fx-padding: 7 10 7 10;
+}
+
+/* --------------------------------------------------- session editor dialog */
+
+.points-preview {
+    -fx-text-fill: -color-accent;
+    -fx-font-weight: bold;
+}
+
+.date-picker > .text-field {
+    -fx-background-color: -color-surface-alt;
+}
+
+.date-picker-popup {
+    -fx-background-color: -color-surface;
+}
+
+.date-picker-popup > * > .date-cell {
+    -fx-background-color: -color-surface;
+    -fx-text-fill: -color-text;
+}
+
+.date-picker-popup > * > .day-cell:hover {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: -color-accent-text;
+}
+
+/* A future date cannot describe past studying, so it is disabled - and must
+   clearly look it. */
+.date-picker-popup > * > .day-cell:disabled {
+    -fx-opacity: 0.3;
+}
+
+.spinner .text-field {
+    -fx-background-color: -color-surface-alt;
+    -fx-text-fill: -color-text;
+}
+
+.spinner .increment-arrow-button,
+.spinner .decrement-arrow-button {
+    -fx-background-color: -color-surface-alt;
+}
+
+.spinner .increment-arrow,
+.spinner .decrement-arrow {
+    -fx-background-color: -color-text-dim;
+}
+
+/* ------------------------------------------------------- note viewer / links */
+
+.note-viewer {
+    -fx-background-color: -color-surface;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -color-border;
+    -fx-border-width: 1;
+}
+
+/* The note text is shown as stored, so a monospace face keeps the frontmatter
+   block and the list markers lined up the way Obsidian shows them. */
+.note-body,
+.note-body .content {
+    -fx-background-color: -color-surface-alt;
+    -fx-text-fill: -color-text;
+    -fx-font-family: "Consolas", "Menlo", monospace;
+    -fx-font-size: 12px;
+}
+
+.note-link {
+    -fx-text-fill: -color-accent;
+    -fx-border-color: transparent;
+    -fx-padding: 4 10 4 10;
+    -fx-background-color: -color-surface-alt;
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}
+
+.note-link:hover {
+    -fx-background-color: -color-accent;
+    -fx-text-fill: -color-accent-text;
+    -fx-underline: false;
+}
+
+/* A link whose target is gone. Still shown, because a broken link usually means
+   a note was renamed in Obsidian and is worth knowing about. */
+.note-link:disabled {
+    -fx-opacity: 0.5;
+    -fx-text-fill: -color-text-dim;
+}
+
+.split-pane {
+    -fx-background-color: transparent;
+    -fx-padding: 0;
+}
+
+.split-pane > .split-pane-divider {
+    -fx-background-color: -color-border;
+    -fx-padding: 0 0 0 0;
+    -fx-pref-height: 4px;
+}
+
+/* ------------------------------------------------------------ filter grid */
+
+/* The filters sit on their own panel so the grid reads as one block of controls
+   rather than as loose widgets floating above the table. */
+.filter-pane {
+    -fx-background-color: -color-surface;
+    -fx-background-radius: 10;
+    -fx-border-radius: 10;
+    -fx-border-color: -color-border;
+    -fx-border-width: 1;
+}
+
+/* ------------------------------------------------------------- note picker */
+
+.note-picker-list {
+    -fx-background-color: -color-surface-alt;
+    -fx-border-color: -color-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.note-picker-list .list-cell {
+    -fx-background-color: transparent;
+    -fx-text-fill: -color-text;
+    -fx-padding: 3 8 3 8;
+}
+
+.note-picker-list .list-cell:hover {
+    -fx-background-color: -color-surface;
+}
+
+.check-box {
+    -fx-text-fill: -color-text;
+}
+
+.check-box > .box {
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
+    -fx-border-radius: 3;
+}
+
+.check-box:selected > .box {
+    -fx-background-color: -color-accent;
+    -fx-border-color: -color-accent;
+}
+
+.check-box:selected > .box > .mark {
+    -fx-background-color: -color-accent-text;
+}
+
+/* ---------------------------------------------------------------- menus */
+
+.context-menu {
+    -fx-background-color: -color-surface;
+    -fx-border-color: -color-border;
+    -fx-border-radius: 6;
+    -fx-background-radius: 6;
+}
+
+.context-menu .menu-item .label {
+    -fx-text-fill: -color-text;
+}
+
+.context-menu .menu-item:focused {
+    -fx-background-color: -color-accent;
+}
+
+.context-menu .menu-item:focused .label {
+    -fx-text-fill: -color-accent-text;
+}
+
+/* --------------------------------------------------------------- scrolling */
+
+.scroll-pane,
+.scroll-pane > .viewport {
+    -fx-background-color: transparent;
+}
+
+/* ---------------------------------------------------------------- dialogs */
+
+.dialog-pane {
+    -fx-background-color: -color-surface;
+}
+
+.dialog-pane .label {
+    -fx-text-fill: -color-text;
+}
+
+/* The header strip has its own background in the default theme, so without this
+   the header text ends up light-on-light and effectively invisible. */
+.dialog-pane > .header-panel {
+    -fx-background-color: -color-surface-alt;
+}
+
+.dialog-pane > .header-panel .label {
+    -fx-text-fill: -color-text;
+    -fx-font-size: 14px;
+}
+
+.dialog-pane .text-area,
+.dialog-pane .text-area .content {
+    -fx-background-color: -color-surface-alt;
+    -fx-text-fill: -color-text;
+}
+
+.dialog-pane .button {
+    -fx-background-radius: 6;
+    -fx-cursor: hand;
+}

@@ -1,0 +1,26 @@
+# Your study notes. The vault is your data, not the project's - keep it out of
+# the repository unless you deliberately want to version it.
+vault/
+
+# Left over from the previous Firebase-backed version. Kept here so an old key
+# cannot be committed by accident; the file itself is safe to delete.
+src/main/resources/serviceAccount.json
+serviceAccount.json
+
+# Maven build output
+target/
+
+# Maven wrapper's downloaded Maven distribution
+.mvn/wrapper/maven-wrapper.jar.lck
+
+# IDE
+.idea/
+*.iml
+.vscode/
+.settings/
+.classpath
+.project
+
+# OS
+Thumbs.db
+.DS_Store
