@@ -146,35 +146,28 @@
 
 /* ------------------------------------------------------------------ tabs */
 
-.tab-pane {
-    -fx-background-color: -color-bg;
-}
-
-.tab-pane > .tab-header-area > .tab-header-background {
+/* The nav bar (Dashboard / History / Charts / Statistics) always sits at the
+   very top, above the filters and above whichever screen is showing - see
+   MainWindow.buildScene. */
+.nav-bar {
     -fx-background-color: -color-surface;
+    -fx-border-color: transparent transparent -color-border transparent;
+    -fx-border-width: 0 0 1 0;
 }
 
-.tab-pane .tab {
+.nav-tab {
     -fx-background-color: transparent;
+    -fx-background-radius: 0;
     -fx-padding: 8 18 8 18;
-}
-
-.tab-pane .tab:selected {
-    -fx-background-color: -color-bg;
-}
-
-.tab-pane .tab .tab-label {
     -fx-text-fill: -color-text-dim;
+    -fx-font-size: 13px;
+    -fx-cursor: hand;
 }
 
-.tab-pane .tab:selected .tab-label {
+.nav-tab:selected {
+    -fx-background-color: -color-bg;
     -fx-text-fill: -color-accent;
     -fx-font-weight: bold;
-}
-
-/* Hides the focus ring JavaFX draws around the selected tab's content. */
-.tab-pane > .tab-content-area {
-    -fx-background-color: -color-bg;
 }
 
 /* ----------------------------------------------------------------- timer */

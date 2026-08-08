@@ -9,6 +9,7 @@ import com.study.organizer.vault.ObsidianVault;
 import com.study.organizer.vault.VaultLocation;
 
 import javafx.beans.binding.Bindings;
+import javafx.beans.value.ObservableBooleanValue;
 import javafx.geometry.Insets;
 import javafx.geometry.Pos;
 import javafx.geometry.Side;
@@ -17,13 +18,14 @@ import javafx.scene.control.Button;
 import javafx.scene.control.ContextMenu;
 import javafx.scene.control.Label;
 import javafx.scene.control.MenuItem;
-import javafx.scene.control.Tab;
-import javafx.scene.control.TabPane;
+import javafx.scene.control.ToggleButton;
+import javafx.scene.control.ToggleGroup;
 import javafx.scene.control.Tooltip;
 import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Priority;
 import javafx.scene.layout.Region;
+import javafx.scene.layout.StackPane;
 import javafx.scene.layout.VBox;
 import javafx.stage.DirectoryChooser;
 import javafx.stage.Stage;
@@ -96,17 +98,47 @@ public class MainWindow {
         FilteredSessionView view =
                 new FilteredSessionView(data.getSessions(), filters.predicateProperty());
 
-        Tab dashboardTab = new Tab("Dashboard",
-                new DashboardView(timer, data, themes.themeProperty(), this::handleFinish));
-        Tab historyTab = new Tab("History", new HistoryPane(data, filters, view));
-        Tab chartsTab = new Tab("Charts", new ChartsPane(view, themes.themeProperty()));
-        Tab statisticsTab = new Tab("Statistics", new StatisticsPane(view));
+        Region dashboardView =
+                new DashboardView(timer, data, themes.themeProperty(), this::handleFinish);
+        Region historyView = new HistoryPane(data, filters, view);
+        Region chartsView = new ChartsPane(view, themes.themeProperty());
+        Region statisticsView = new StatisticsPane(view);
 
-        TabPane tabs = new TabPane(dashboardTab, historyTab, chartsTab, statisticsTab);
-        tabs.setTabClosingPolicy(TabPane.TabClosingPolicy.UNAVAILABLE);
+        ToggleButton dashboardTab = navButton("Dashboard");
+        ToggleButton historyTab = navButton("History");
+        ToggleButton chartsTab = navButton("Charts");
+        ToggleButton statisticsTab = navButton("Statistics");
 
-        BorderPane root = new BorderPane(tabs);
-        root.setTop(new VBox(buildTopBar(), buildFilterBar(filters, tabs, dashboardTab)));
+        ToggleGroup screens = new ToggleGroup();
+        screens.getToggles().addAll(dashboardTab, historyTab, chartsTab, statisticsTab);
+        dashboardTab.setSelected(true);
+
+        // Clicking the already-selected tab would otherwise leave nothing
+        // selected and every screen hidden, so the previous choice is restored.
+        screens.selectedToggleProperty().addListener((observable, old, current) -> {
+            if (current == null) {
+                screens.selectToggle(old);
+            }
+        });
+
+        showWhileSelected(dashboardView, dashboardTab);
+        showWhileSelected(historyView, historyTab);
+        showWhileSelected(chartsView, chartsTab);
+        showWhileSelected(statisticsView, statisticsTab);
+
+        StackPane content = new StackPane(dashboardView, historyView, chartsView, statisticsView);
+
+        HBox navBar = new HBox(dashboardTab, historyTab, chartsTab, statisticsTab);
+        navBar.getStyleClass().add("nav-bar");
+
+        // The bar with Dashboard / History / Charts / Statistics always sits on
+        // top, the filters (which only mean something away from the Dashboard)
+        // sit just below it, and every screen's own content starts underneath
+        // both - so the same three-band layout holds no matter which screen is
+        // showing.
+        BorderPane root = new BorderPane(content);
+        root.setTop(new VBox(
+                buildTopBar(), navBar, buildFilterBar(filters, dashboardTab.selectedProperty())));
 
         Scene scene = new Scene(root, WINDOW_WIDTH, WINDOW_HEIGHT);
         scene.getStylesheets().add(
@@ -116,6 +148,19 @@ public class MainWindow {
         themes.applyTo(scene);
 
         return scene;
+    }
+
+    /** One button in the top nav bar, styled like the tab it replaces. */
+    private ToggleButton navButton(String text) {
+        ToggleButton button = new ToggleButton(text);
+        button.getStyleClass().add("nav-tab");
+        return button;
+    }
+
+    /** Keeps a screen's content showing only while its nav button is selected. */
+    private void showWhileSelected(Region screen, ToggleButton tab) {
+        screen.visibleProperty().bind(tab.selectedProperty());
+        screen.managedProperty().bind(tab.selectedProperty());
     }
 
     /**
@@ -129,16 +174,15 @@ public class MainWindow {
      * <p>{@code managed} is bound alongside {@code visible} so the hidden bar
      * gives its space back rather than leaving a gap.
      *
-     * @param filters      the shared filter grid
-     * @param tabs         the tab pane, watched for the selected tab
-     * @param dashboardTab the tab the filters do not apply to
+     * @param filters          the shared filter grid
+     * @param dashboardSelected whether the Dashboard screen is the one showing
      * @return the filter bar, ready to place
      */
-    private VBox buildFilterBar(SessionFilterPane filters, TabPane tabs, Tab dashboardTab) {
+    private VBox buildFilterBar(SessionFilterPane filters, ObservableBooleanValue dashboardSelected) {
         VBox holder = new VBox(filters);
         holder.setPadding(new Insets(10, 12, 0, 12));
 
-        var showing = tabs.getSelectionModel().selectedItemProperty().isNotEqualTo(dashboardTab);
+        var showing = Bindings.not(dashboardSelected);
         holder.visibleProperty().bind(showing);
         holder.managedProperty().bind(showing);
 
