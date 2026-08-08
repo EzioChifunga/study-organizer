@@ -40,13 +40,15 @@ public class DashboardView extends VBox {
      */
     private static final double WEEKLY_GOAL_HOURS = 10.0;
 
-    private final StatTile todayTime = new StatTile("Today", "0m");
-    private final StatTile todayPoints = new StatTile("Today's points", "0");
-    private final StatTile weekPoints = new StatTile("This week", "0");
-    private final StatTile monthPoints = new StatTile("This month", "0");
-    private final StatTile streak = new StatTile("Current streak", "0 days");
-    private final StatTile topCategory = new StatTile("Most studied", "-");
-    private final StatTile lastSession = new StatTile("Last session", "None yet");
+    private final StatTile todayTime = new StatTile(I18n.t("dashboard.tile.today"), "0m");
+    private final StatTile todayPoints = new StatTile(I18n.t("dashboard.tile.todayPoints"), "0");
+    private final StatTile weekPoints = new StatTile(I18n.t("dashboard.tile.week"), "0");
+    private final StatTile monthPoints = new StatTile(I18n.t("dashboard.tile.month"), "0");
+    private final StatTile streak =
+            new StatTile(I18n.t("dashboard.tile.streak"), I18n.t("dashboard.streak.days", 0));
+    private final StatTile topCategory = new StatTile(I18n.t("dashboard.tile.topCategory"), "-");
+    private final StatTile lastSession =
+            new StatTile(I18n.t("dashboard.tile.lastSession"), I18n.t("dashboard.value.none"));
 
     private final ProgressBar weeklyProgress = new ProgressBar(0);
     private final Label weeklyProgressLabel = new Label();
@@ -101,7 +103,9 @@ public class DashboardView extends VBox {
         monthPoints.setValue(PointsCalculator.format(stats.getMonthPoints()));
 
         int days = stats.getCurrentStreak();
-        streak.setValue(days + (days == 1 ? " day" : " days"));
+        streak.setValue(days == 1
+                ? I18n.t("dashboard.streak.day", days)
+                : I18n.t("dashboard.streak.days", days));
 
         topCategory.setValue(stats.getMostStudiedCategory().orElse("-"));
         lastSession.setValue(describeLastSession(stats.getLastSession()));
@@ -112,8 +116,8 @@ public class DashboardView extends VBox {
     private void updateWeeklyProgress(double hoursThisWeek) {
         // Clamp to 1.0 so the bar does not misdraw once the goal is beaten.
         weeklyProgress.setProgress(Math.min(1.0, hoursThisWeek / WEEKLY_GOAL_HOURS));
-        weeklyProgressLabel.setText(String.format(
-                "Weekly progress - %.2f of %.0f hours", hoursThisWeek, WEEKLY_GOAL_HOURS));
+        weeklyProgressLabel.setText(I18n.t("dashboard.weeklyProgress",
+                String.format("%.2f", hoursThisWeek), String.format("%.0f", WEEKLY_GOAL_HOURS)));
     }
 
     private static String describeLastSession(Optional<StudySession> session) {
@@ -121,7 +125,7 @@ public class DashboardView extends VBox {
                 .map(value -> value.getStartedAt()
                         .atZone(ZoneId.systemDefault())
                         .format(LAST_SESSION_FORMAT))
-                .orElse("None yet");
+                .orElse(I18n.t("dashboard.value.none"));
     }
 
 }

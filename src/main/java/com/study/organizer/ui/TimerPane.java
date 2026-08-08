@@ -87,9 +87,9 @@ public class TimerPane extends VBox {
         StopwatchDial dial = new StopwatchDial(timer, theme, DIAL_SIZE);
 
         HBox row = new HBox(12,
-                buildReadout("Hours / Minutes", hoursMinutesPanel(), Pos.CENTER_RIGHT),
+                buildReadout(I18n.t("timer.readout.hoursMinutes"), hoursMinutesPanel(), Pos.CENTER_RIGHT),
                 new StackPane(dial, buildCentreButton(dial)),
-                buildReadout("Seconds", secondsPanel(), Pos.CENTER_LEFT));
+                buildReadout(I18n.t("timer.readout.seconds"), secondsPanel(), Pos.CENTER_LEFT));
 
         row.setAlignment(Pos.CENTER);
         return row;
@@ -99,7 +99,7 @@ public class TimerPane extends VBox {
     private VBox buildReadout(String caption, Region digits, Pos alignment) {
         Label captionLabel = new Label(caption);
         captionLabel.getStyleClass().add("readout-caption");
-        if (caption.equals("Seconds")) {
+        if (caption.equals(I18n.t("timer.readout.seconds"))) {
             // The active figure is highlighted, matching the reference stopwatch.
             captionLabel.getStyleClass().add("readout-caption-accent");
         }
@@ -202,10 +202,10 @@ public class TimerPane extends VBox {
         statusLabel.getStyleClass().add("status-text");
         statusLabel.textProperty().bind(Bindings.createStringBinding(
                 () -> switch (timer.getState()) {
-                    case IDLE -> "Ready to start";
-                    case RUNNING -> "Studying " + timer.getCurrentCategory();
-                    case PAUSED -> "Paused - " + timer.getCurrentCategory();
-                    case FINISHED -> "Session finished";
+                    case IDLE -> I18n.t("timer.status.ready");
+                    case RUNNING -> I18n.t("timer.status.studying", timer.getCurrentCategory());
+                    case PAUSED -> I18n.t("timer.status.paused", timer.getCurrentCategory());
+                    case FINISHED -> I18n.t("timer.status.finished");
                 },
                 timer.stateProperty(), timer.currentCategoryProperty()));
     }
@@ -220,7 +220,7 @@ public class TimerPane extends VBox {
     private void buildCategoryBox(ObservableList<String> categories) {
         categoryBox.setItems(categories);
         categoryBox.setEditable(true);
-        categoryBox.setPromptText("What are you studying?");
+        categoryBox.setPromptText(I18n.t("timer.category.prompt"));
         categoryBox.setPrefWidth(280);
         categoryBox.setMaxWidth(280);
 
@@ -237,8 +237,8 @@ public class TimerPane extends VBox {
      * two actions that end a session need a place here.
      */
     private HBox buildButtonRow(Runnable onFinish) {
-        Button finishButton = new Button("Finish");
-        Button cancelButton = new Button("Cancel");
+        Button finishButton = new Button(I18n.t("common.finish"));
+        Button cancelButton = new Button(I18n.t("common.cancel"));
 
         finishButton.getStyleClass().addAll("action-button", "primary-button");
         cancelButton.getStyleClass().addAll("action-button", "danger-button");
@@ -262,8 +262,8 @@ public class TimerPane extends VBox {
     private void handleStart() {
         String category = readSelectedCategory();
         if (category == null || category.isBlank()) {
-            Dialogs.showWarning("Choose a category",
-                    "Pick a category from the list, or type a new one, before starting.");
+            Dialogs.showWarning(I18n.t("timer.categoryRequired.title"),
+                    I18n.t("timer.categoryRequired.body"));
             return;
         }
         timer.start(category);
@@ -271,8 +271,8 @@ public class TimerPane extends VBox {
 
     /** Cancels the session after confirming, since the time would be lost. */
     private void handleCancel() {
-        boolean confirmed = Dialogs.confirm("Cancel this session?",
-                "The elapsed time will be discarded and nothing will be saved.");
+        boolean confirmed = Dialogs.confirm(I18n.t("timer.cancelConfirm.title"),
+                I18n.t("timer.cancelConfirm.body"));
         if (confirmed) {
             timer.cancel();
             categoryBox.getEditor().clear();

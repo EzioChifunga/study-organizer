@@ -59,11 +59,10 @@ public class FinishSessionDialog extends Dialog<FinishSessionDialog.Result> {
         this.notePicker = new NotePickerPane(data);
         notePicker.setCategory(category);
 
-        setTitle("Finish session");
-        setHeaderText("You studied " + category + " for "
-                + DurationFormatter.format(durationSeconds));
+        setTitle(I18n.t("finish.title"));
+        setHeaderText(I18n.t("finish.header", category, DurationFormatter.format(durationSeconds)));
 
-        ButtonType saveButton = new ButtonType("Save session", ButtonBar.ButtonData.OK_DONE);
+        ButtonType saveButton = new ButtonType(I18n.t("finish.save"), ButtonBar.ButtonData.OK_DONE);
         getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
 
         getDialogPane().setContent(buildContent());
@@ -87,17 +86,17 @@ public class FinishSessionDialog extends Dialog<FinishSessionDialog.Result> {
     }
 
     private VBox buildContent() {
-        summaryField.setPromptText("What did you study? What did you learn?");
+        summaryField.setPromptText(I18n.t("common.summary.prompt"));
         summaryField.setWrapText(true);
         summaryField.setPrefRowCount(4);
 
-        observationsField.setPromptText("Anything to revisit, or how the session went (optional)");
+        observationsField.setPromptText(I18n.t("common.observations.prompt"));
         observationsField.setWrapText(true);
         observationsField.setPrefRowCount(3);
 
         VBox content = new VBox(8,
-                new Label("Study summary (required)"), summaryField,
-                new Label("Observations (optional)"), observationsField,
+                new Label(I18n.t("common.summary.label")), summaryField,
+                new Label(I18n.t("common.observations.label")), observationsField,
                 notePicker);
         content.setPadding(new Insets(12));
         content.setPrefWidth(500);

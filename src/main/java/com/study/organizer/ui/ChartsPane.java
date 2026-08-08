@@ -19,7 +19,6 @@ import javafx.scene.layout.VBox;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
-import java.util.Locale;
 import java.util.Map;
 
 /**
@@ -85,19 +84,19 @@ public class ChartsPane extends ScrollPane {
     /** Hours studied on each day of the current week. */
     private BarChart<String, Number> buildWeeklyBarChart(StatisticsService stats) {
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Day");
+        xAxis.setLabel(I18n.t("charts.axis.day"));
 
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Hours");
+        yAxis.setLabel(I18n.t("charts.axis.hours"));
 
         BarChart<String, Number> chart = new BarChart<>(xAxis, yAxis);
-        chart.setTitle("This week");
+        chart.setTitle(I18n.t("charts.weekly.title"));
         chart.setLegendVisible(false);
         chart.setPrefHeight(300);
 
         XYChart.Series<String, Number> series = new XYChart.Series<>();
         for (Map.Entry<DayOfWeek, Long> entry : stats.getCurrentWeekByDay().entrySet()) {
-            String label = entry.getKey().getDisplayName(TextStyle.SHORT, Locale.ENGLISH);
+            String label = entry.getKey().getDisplayName(TextStyle.SHORT, I18n.getLanguage().locale());
             series.getData().add(
                     new XYChart.Data<>(label, PointsCalculator.toHours(entry.getValue())));
         }
@@ -109,13 +108,13 @@ public class ChartsPane extends ScrollPane {
     /** Hours studied on each day of the current month so far. */
     private LineChart<String, Number> buildMonthlyLineChart(StatisticsService stats) {
         CategoryAxis xAxis = new CategoryAxis();
-        xAxis.setLabel("Day of month");
+        xAxis.setLabel(I18n.t("charts.axis.dayOfMonth"));
 
         NumberAxis yAxis = new NumberAxis();
-        yAxis.setLabel("Hours");
+        yAxis.setLabel(I18n.t("charts.axis.hours"));
 
         LineChart<String, Number> chart = new LineChart<>(xAxis, yAxis);
-        chart.setTitle("This month");
+        chart.setTitle(I18n.t("charts.monthly.title"));
         chart.setLegendVisible(false);
         chart.setPrefHeight(300);
         chart.setCreateSymbols(true);
@@ -136,18 +135,19 @@ public class ChartsPane extends ScrollPane {
         Map<String, Long> byCategory = stats.getSecondsByCategory();
 
         if (byCategory.isEmpty()) {
-            Label empty = new Label("No sessions recorded yet - finish a session to see this chart.");
+            Label empty = new Label(I18n.t("charts.category.empty"));
             empty.getStyleClass().add("empty-state");
             return empty;
         }
 
         PieChart chart = new PieChart();
-        chart.setTitle("Time by category");
+        chart.setTitle(I18n.t("charts.category.title"));
         chart.setPrefHeight(340);
 
         byCategory.forEach((category, seconds) ->
                 chart.getData().add(new PieChart.Data(
-                        category + " (" + PointsCalculator.toHours(seconds) + "h)",
+                        category + " (" + PointsCalculator.toHours(seconds)
+                                + I18n.t("charts.hoursSuffix") + ")",
                         PointsCalculator.toHours(seconds))));
 
         return chart;

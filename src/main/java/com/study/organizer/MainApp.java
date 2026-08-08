@@ -3,6 +3,7 @@ package com.study.organizer;
 import com.study.organizer.service.StudyDataService;
 import com.study.organizer.service.TimerService;
 import com.study.organizer.ui.Dialogs;
+import com.study.organizer.ui.I18n;
 import com.study.organizer.ui.MainWindow;
 import com.study.organizer.ui.ThemeManager;
 import com.study.organizer.vault.ObsidianVault;
@@ -65,11 +66,11 @@ public class MainApp extends Application {
         TimerService timer = new TimerService();
         data = new StudyDataService(vault);
 
-        new MainWindow(timer, data, null).show(stage, "Study Organizer");
+        new MainWindow(timer, data, null).show(stage, I18n.t("app.title"));
 
         // Read the vault after the window is visible, so the application appears
         // immediately rather than while the folder is being scanned.
-        data.reload(error -> Dialogs.showError("Could not read your vault", error));
+        data.reload(error -> Dialogs.showError(I18n.t("app.readError"), error));
     }
 
     /**
@@ -82,15 +83,9 @@ public class MainApp extends Application {
     private void showStartupFailure(Path folder, RuntimeException e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         ThemeManager.styleDialog(alert.getDialogPane());
-        alert.setTitle("Study Organizer - cannot open the vault");
-        alert.setHeaderText("The vault folder could not be opened");
-        alert.setContentText(
-                folder + System.lineSeparator() + System.lineSeparator()
-                        + e.getMessage() + System.lineSeparator() + System.lineSeparator()
-                        + "Check that the folder exists and can be written to. If it was "
-                        + "moved or deleted, delete the saved vault setting by running the "
-                        + "application with -Dvault.reset=true, and it will go back to using "
-                        + "a 'vault' folder beside the application.");
+        alert.setTitle(I18n.t("app.startupFailure.title"));
+        alert.setHeaderText(I18n.t("app.startupFailure.header"));
+        alert.setContentText(I18n.t("app.startupFailure.body", folder, e.getMessage()));
         alert.getDialogPane().setPrefWidth(640);
         alert.showAndWait();
     }

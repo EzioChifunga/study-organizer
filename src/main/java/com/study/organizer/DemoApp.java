@@ -4,6 +4,7 @@ import com.study.organizer.demo.DemoVault;
 import com.study.organizer.service.StudyDataService;
 import com.study.organizer.service.TimerService;
 import com.study.organizer.ui.Dialogs;
+import com.study.organizer.ui.I18n;
 import com.study.organizer.ui.MainWindow;
 import com.study.organizer.ui.ThemeManager;
 import com.study.organizer.vault.ObsidianVault;
@@ -37,9 +38,7 @@ import java.io.IOException;
 public class DemoApp extends Application {
 
     /** Shown across the top so demo data is never mistaken for real data. */
-    private static final String BANNER =
-            "  DEMO MODE - a temporary vault of sample notes, deleted on exit. "
-                    + "Run without -Pdemo to use your own vault.";
+    private static final String BANNER = I18n.t("app.demo.banner");
 
     private StudyDataService data;
 
@@ -65,16 +64,16 @@ public class DemoApp extends Application {
         TimerService timer = new TimerService();
         data = new StudyDataService(vault);
 
-        new MainWindow(timer, data, BANNER).show(stage, "Study Organizer - DEMO");
+        new MainWindow(timer, data, BANNER).show(stage, I18n.t("app.demo.title"));
 
-        data.reload(error -> Dialogs.showError("Could not read the demo vault", error));
+        data.reload(error -> Dialogs.showError(I18n.t("app.demo.readError"), error));
     }
 
     private void showStartupFailure(Exception e) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         ThemeManager.styleDialog(alert.getDialogPane());
-        alert.setTitle("Study Organizer - demo");
-        alert.setHeaderText("Could not create the demo vault");
+        alert.setTitle(I18n.t("app.demo.startupFailure.title"));
+        alert.setHeaderText(I18n.t("app.demo.startupFailure.header"));
         alert.setContentText(e.getMessage());
         alert.showAndWait();
     }

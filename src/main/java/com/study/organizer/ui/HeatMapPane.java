@@ -15,7 +15,6 @@ import javafx.scene.paint.Color;
 import java.time.DayOfWeek;
 import java.time.LocalDate;
 import java.time.format.TextStyle;
-import java.util.Locale;
 import java.util.Map;
 
 import com.study.organizer.util.DurationFormatter;
@@ -63,7 +62,7 @@ public class HeatMapPane extends VBox {
         setSpacing(8);
         setPadding(new Insets(10));
 
-        Label title = new Label("Study frequency");
+        Label title = new Label(I18n.t("heatmap.title"));
         title.getStyleClass().add("chart-title");
 
         getChildren().addAll(title, buildGrid(dailySeconds), buildLegend());
@@ -78,7 +77,7 @@ public class HeatMapPane extends VBox {
 
         // Row labels down the left edge: Mon, Tue, ...
         for (DayOfWeek day : DayOfWeek.values()) {
-            Label label = new Label(day.getDisplayName(TextStyle.SHORT, Locale.ENGLISH));
+            Label label = new Label(day.getDisplayName(TextStyle.SHORT, I18n.getLanguage().locale()));
             label.getStyleClass().add("heatmap-label");
             label.setMinWidth(34);
             grid.add(label, 0, day.getValue() - 1);
@@ -110,7 +109,8 @@ public class HeatMapPane extends VBox {
 
         Tooltip.install(cell, new Tooltip(
                 date + System.lineSeparator()
-                        + (seconds == 0 ? "No study" : DurationFormatter.formatShort(seconds))));
+                        + (seconds == 0
+                                ? I18n.t("heatmap.noStudy") : DurationFormatter.formatShort(seconds))));
 
         return cell;
     }
@@ -142,7 +142,7 @@ public class HeatMapPane extends VBox {
         GridPane swatches = new GridPane();
         swatches.setHgap(CELL_GAP);
 
-        Label less = new Label("Less");
+        Label less = new Label(I18n.t("heatmap.less"));
         less.getStyleClass().add("heatmap-label");
         swatches.add(less, 0, 0);
 
@@ -155,7 +155,7 @@ public class HeatMapPane extends VBox {
             swatches.add(swatch, step + 1, 0);
         }
 
-        Label more = new Label("More");
+        Label more = new Label(I18n.t("heatmap.more"));
         more.getStyleClass().add("heatmap-label");
         swatches.add(more, 6, 0);
 

@@ -104,10 +104,10 @@ public class MainWindow {
         Region chartsView = new ChartsPane(view, themes.themeProperty());
         Region statisticsView = new StatisticsPane(view);
 
-        ToggleButton dashboardTab = navButton("Dashboard");
-        ToggleButton historyTab = navButton("History");
-        ToggleButton chartsTab = navButton("Charts");
-        ToggleButton statisticsTab = navButton("Statistics");
+        ToggleButton dashboardTab = navButton(I18n.t("nav.dashboard"));
+        ToggleButton historyTab = navButton(I18n.t("nav.history"));
+        ToggleButton chartsTab = navButton(I18n.t("nav.charts"));
+        ToggleButton statisticsTab = navButton(I18n.t("nav.statistics"));
 
         ToggleGroup screens = new ToggleGroup();
         screens.getToggles().addAll(dashboardTab, historyTab, chartsTab, statisticsTab);
@@ -206,8 +206,17 @@ public class MainWindow {
         Region spacer = new Region();
         HBox.setHgrow(spacer, Priority.ALWAYS);
 
-        bar.getChildren().addAll(spacer, buildVaultButton(), buildThemeToggle());
+        bar.getChildren().addAll(
+                spacer, buildVaultButton(), buildPreferencesButton(), buildThemeToggle());
         return bar;
+    }
+
+    /** Opens the Preferences dialog - currently just the language picker. */
+    private Button buildPreferencesButton() {
+        Button button = new Button(I18n.t("topbar.preferences"));
+        button.getStyleClass().add("theme-toggle");
+        button.setOnAction(event -> new PreferencesDialog().showAndWait());
+        return button;
     }
 
     /**
@@ -222,25 +231,23 @@ public class MainWindow {
         button.getStyleClass().add("theme-toggle");
 
         Path root = data.getVault().getRoot();
-        button.setText("Vault: " + root.getFileName());
-        button.setTooltip(new Tooltip(root + System.lineSeparator()
-                + System.lineSeparator()
-                + "Click to open it in Obsidian, or to choose a different vault."));
+        button.setText(I18n.t("vault.button", root.getFileName()));
+        button.setTooltip(new Tooltip(I18n.t("vault.tooltip", root)));
 
         button.setOnAction(event -> showVaultMenu(button));
         return button;
     }
 
     private void showVaultMenu(Button anchor) {
-        MenuItem open = new MenuItem("Open vault in Obsidian");
+        MenuItem open = new MenuItem(I18n.t("vault.menu.open"));
         open.setOnAction(event -> {
             String problem = ObsidianLauncher.openFolder(data.getVault().getRoot());
             if (problem != null) {
-                Dialogs.showWarning("Could not open Obsidian", problem);
+                Dialogs.showWarning(I18n.t("common.obsidianError.title"), problem);
             }
         });
 
-        MenuItem change = new MenuItem("Choose a different vault...");
+        MenuItem change = new MenuItem(I18n.t("vault.menu.change"));
         change.setOnAction(event -> chooseVault(anchor));
 
         ContextMenu menu = new ContextMenu(open, change);
@@ -262,7 +269,7 @@ public class MainWindow {
      */
     private void chooseVault(Button anchor) {
         DirectoryChooser chooser = new DirectoryChooser();
-        chooser.setTitle("Choose your Obsidian vault folder");
+        chooser.setTitle(I18n.t("vault.chooser.title"));
 
         Path current = data.getVault().getRoot();
         if (Files.isDirectory(current)) {
@@ -277,15 +284,12 @@ public class MainWindow {
         Path folder = chosen.toPath();
         String problem = ObsidianVault.describeProblem(folder);
         if (problem != null) {
-            Dialogs.showWarning("That folder cannot be used", problem);
+            Dialogs.showWarning(I18n.t("vault.invalidFolder.title"), problem);
             return;
         }
 
         VaultLocation.set(folder);
-        Dialogs.showWarning("Vault changed",
-                "Sessions will be stored in:" + System.lineSeparator()
-                        + folder + System.lineSeparator() + System.lineSeparator()
-                        + "Restart the application for the change to take effect.");
+        Dialogs.showWarning(I18n.t("vault.changed.title"), I18n.t("vault.changed.body", folder));
     }
 
     /**
@@ -299,7 +303,8 @@ public class MainWindow {
         toggle.getStyleClass().add("theme-toggle");
 
         toggle.textProperty().bind(Bindings.createStringBinding(
-                () -> themes.getTheme() == Theme.DARK ? "☀  Light" : "☽  Dark",
+                () -> themes.getTheme() == Theme.DARK
+                        ? I18n.t("topbar.themeToLight") : I18n.t("topbar.themeToDark"),
                 themes.themeProperty()));
 
         toggle.setOnAction(event -> themes.toggle());
@@ -334,16 +339,14 @@ public class MainWindow {
         data.saveSession(
                 session,
                 timer::reset,
-                error -> Dialogs.showError(
-                        "Could not write the session note. It has not been lost - press "
-                                + "Finish again once the problem is fixed.", error));
+                error -> Dialogs.showError(I18n.t("session.saveError"), error));
     }
 
     /** Asks for confirmation before closing while a session is still active. */
     private void confirmClose(WindowEvent event) {
         if (timer.isSessionActive()) {
-            boolean quit = Dialogs.confirm("A session is still running",
-                    "If you close now the session will be lost. Close anyway?");
+            boolean quit = Dialogs.confirm(
+                    I18n.t("close.confirm.title"), I18n.t("close.confirm.body"));
             if (!quit) {
                 event.consume();   // Cancels the close.
             }

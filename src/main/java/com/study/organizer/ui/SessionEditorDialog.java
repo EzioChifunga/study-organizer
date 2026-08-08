@@ -100,16 +100,14 @@ public class SessionEditorDialog extends Dialog<StudySession> {
         ThemeManager.styleDialog(getDialogPane());
 
         boolean editing = existing != null;
-        setTitle(editing ? "Edit session" : "Add a past session");
-        setHeaderText(editing
-                ? "Correct the details of this session."
-                : "Record studying that was not timed live.");
+        setTitle(I18n.t(editing ? "editor.title.edit" : "editor.title.add"));
+        setHeaderText(I18n.t(editing ? "editor.header.edit" : "editor.header.add"));
 
         buildFields(categories);
         fillFrom(existing);
 
         ButtonType saveButton = new ButtonType(
-                editing ? "Save changes" : "Add session", ButtonBar.ButtonData.OK_DONE);
+                I18n.t(editing ? "editor.save.edit" : "editor.save.add"), ButtonBar.ButtonData.OK_DONE);
         getDialogPane().getButtonTypes().addAll(saveButton, ButtonType.CANCEL);
         getDialogPane().setContent(buildLayout());
 
@@ -141,13 +139,12 @@ public class SessionEditorDialog extends Dialog<StudySession> {
         boolean hadReferences = existing != null && !existing.getReferences().isEmpty();
 
         if (categoryChanged && hadReferences) {
+            int count = existing.getReferences().size();
+            String bodyKey = count == 1
+                    ? "editor.moveConfirm.body.singular" : "editor.moveConfirm.body.plural";
             boolean proceed = Dialogs.confirm(
-                    "Move this session to \"" + chosen + "\"?",
-                    "Its " + existing.getReferences().size() + " reference"
-                            + (existing.getReferences().size() == 1 ? "" : "s")
-                            + " point to notes in \"" + originalCategory + "\", and a session "
-                            + "can only link within its own folder. The note will be moved and "
-                            + "those references removed.");
+                    I18n.t("editor.moveConfirm.title", chosen),
+                    I18n.t(bodyKey, count, originalCategory));
 
             if (!proceed) {
                 return null;
@@ -179,7 +176,7 @@ public class SessionEditorDialog extends Dialog<StudySession> {
 
         categoryBox.setItems(categories);
         categoryBox.setEditable(true);
-        categoryBox.setPromptText("What was studied?");
+        categoryBox.setPromptText(I18n.t("editor.category.prompt"));
         categoryBox.setPrefWidth(260);
 
         // The picker must always show the notes of whichever folder is currently
@@ -189,11 +186,11 @@ public class SessionEditorDialog extends Dialog<StudySession> {
         categoryBox.getEditor().textProperty().addListener(
                 (observable, old, current) -> notePicker.setCategory(readCategory()));
 
-        summaryField.setPromptText("What did you study? What did you learn?");
+        summaryField.setPromptText(I18n.t("common.summary.prompt"));
         summaryField.setWrapText(true);
         summaryField.setPrefRowCount(4);
 
-        observationsField.setPromptText("Anything to revisit, or how it went (optional)");
+        observationsField.setPromptText(I18n.t("common.observations.prompt"));
         observationsField.setWrapText(true);
         observationsField.setPrefRowCount(3);
 
@@ -209,11 +206,8 @@ public class SessionEditorDialog extends Dialog<StudySession> {
      */
     private void bindPointsPreview() {
         pointsPreview.textProperty().bind(Bindings.createStringBinding(
-                () -> {
-                    long seconds = durationInSeconds();
-                    return "= " + PointsCalculator.format(PointsCalculator.fromSeconds(seconds))
-                            + " points (calculated automatically)";
-                },
+                () -> I18n.t("editor.pointsPreview", PointsCalculator.format(
+                        PointsCalculator.fromSeconds(durationInSeconds()))),
                 durationHours.valueProperty(), durationMinutes.valueProperty()));
     }
 
@@ -271,25 +265,27 @@ public class SessionEditorDialog extends Dialog<StudySession> {
         grid.setHgap(10);
         grid.setVgap(10);
 
-        grid.add(new Label("Date"), 0, 0);
+        grid.add(new Label(I18n.t("editor.label.date")), 0, 0);
         grid.add(datePicker, 1, 0);
 
-        grid.add(new Label("Started at"), 0, 1);
-        grid.add(timeRow(startHour, startMinute, "h", "min"), 1, 1);
+        grid.add(new Label(I18n.t("editor.label.startedAt")), 0, 1);
+        grid.add(timeRow(startHour, startMinute,
+                I18n.t("common.unit.hours"), I18n.t("common.unit.minutes")), 1, 1);
 
-        grid.add(new Label("Duration"), 0, 2);
-        grid.add(timeRow(durationHours, durationMinutes, "h", "min"), 1, 2);
+        grid.add(new Label(I18n.t("editor.label.duration")), 0, 2);
+        grid.add(timeRow(durationHours, durationMinutes,
+                I18n.t("common.unit.hours"), I18n.t("common.unit.minutes")), 1, 2);
 
         grid.add(new Label(""), 0, 3);
         grid.add(pointsPreview, 1, 3);
 
-        grid.add(new Label("Category"), 0, 4);
+        grid.add(new Label(I18n.t("editor.label.category")), 0, 4);
         grid.add(categoryBox, 1, 4);
 
         VBox content = new VBox(12,
                 grid,
-                new Label("Study summary (required)"), summaryField,
-                new Label("Observations (optional)"), observationsField,
+                new Label(I18n.t("common.summary.label")), summaryField,
+                new Label(I18n.t("common.observations.label")), observationsField,
                 notePicker);
         content.setPadding(new Insets(14));
         content.setPrefWidth(540);

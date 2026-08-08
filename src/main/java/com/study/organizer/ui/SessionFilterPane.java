@@ -50,7 +50,7 @@ import java.util.function.Predicate;
 public class SessionFilterPane extends VBox {
 
     /** Shown in the category box to mean "do not filter". */
-    public static final String ALL_CATEGORIES = "All categories";
+    public static final String ALL_CATEGORIES = I18n.t("filters.allCategories");
 
     /** The largest value the duration spinners accept, in minutes. */
     private static final int MAX_MINUTES = 600;
@@ -84,30 +84,30 @@ public class SessionFilterPane extends VBox {
      */
     public enum SortOrder {
 
-        NEWEST("Newest first",
+        NEWEST("filters.sort.newest",
                 Comparator.comparing(StudySession::getStartedAt).reversed()),
 
-        OLDEST("Oldest first",
+        OLDEST("filters.sort.oldest",
                 Comparator.comparing(StudySession::getStartedAt)),
 
-        LONGEST("Longest sessions",
+        LONGEST("filters.sort.longest",
                 Comparator.comparingLong(StudySession::getDurationSeconds).reversed()),
 
-        SHORTEST("Shortest sessions",
+        SHORTEST("filters.sort.shortest",
                 Comparator.comparingLong(StudySession::getDurationSeconds)),
 
-        MOST_POINTS("Most points",
+        MOST_POINTS("filters.sort.mostPoints",
                 Comparator.comparingDouble(StudySession::getPoints).reversed()),
 
-        BY_CATEGORY("Category (A-Z)",
+        BY_CATEGORY("filters.sort.byCategory",
                 Comparator.comparing(StudySession::getCategory, String.CASE_INSENSITIVE_ORDER)
                         .thenComparing(Comparator.comparing(StudySession::getStartedAt).reversed()));
 
-        private final String label;
+        private final String labelKey;
         private final Comparator<StudySession> comparator;
 
-        SortOrder(String label, Comparator<StudySession> comparator) {
-            this.label = label;
+        SortOrder(String labelKey, Comparator<StudySession> comparator) {
+            this.labelKey = labelKey;
             this.comparator = comparator;
         }
 
@@ -118,8 +118,10 @@ public class SessionFilterPane extends VBox {
         @Override
         public String toString() {
             // The combo box shows this, so the enum can be put in directly
-            // rather than needing a cell factory.
-            return label;
+            // rather than needing a cell factory. Looked up rather than stored,
+            // so it reflects whichever language is active even if that changed
+            // after this enum's constants were first loaded.
+            return I18n.t(labelKey);
         }
     }
 
@@ -146,14 +148,14 @@ public class SessionFilterPane extends VBox {
     }
 
     private void buildControls() {
-        searchField.setPromptText("Search summaries, observations and categories");
+        searchField.setPromptText(I18n.t("filters.search.prompt"));
         searchField.textProperty().addListener((observable, old, current) -> applyFilter());
 
         categoryBox.setMaxWidth(Double.MAX_VALUE);
         categoryBox.setOnAction(event -> applyFilter());
 
-        fromDate.setPromptText("Any date");
-        toDate.setPromptText("Any date");
+        fromDate.setPromptText(I18n.t("filters.anyDate"));
+        toDate.setPromptText(I18n.t("filters.anyDate"));
         fromDate.setMaxWidth(Double.MAX_VALUE);
         toDate.setMaxWidth(Double.MAX_VALUE);
         fromDate.valueProperty().addListener((observable, old, current) -> applyFilter());
@@ -186,15 +188,15 @@ public class SessionFilterPane extends VBox {
         }
 
         // Row 0 - the two broadest filters, search spanning half the width.
-        grid.add(labelled("Search", searchField), 0, 0, 2, 1);
-        grid.add(labelled("Category", categoryBox), 2, 0);
-        grid.add(labelled("Sort by", sortBox), 3, 0);
+        grid.add(labelled(I18n.t("filters.label.search"), searchField), 0, 0, 2, 1);
+        grid.add(labelled(I18n.t("filters.label.category"), categoryBox), 2, 0);
+        grid.add(labelled(I18n.t("filters.label.sortBy"), sortBox), 3, 0);
 
         // Row 1 - the two ranges, each pair of ends side by side.
-        grid.add(labelled("From", fromDate), 0, 1);
-        grid.add(labelled("To", toDate), 1, 1);
-        grid.add(labelled("Min minutes", minMinutes), 2, 1);
-        grid.add(labelled("Max minutes", maxMinutes), 3, 1);
+        grid.add(labelled(I18n.t("filters.label.from"), fromDate), 0, 1);
+        grid.add(labelled(I18n.t("filters.label.to"), toDate), 1, 1);
+        grid.add(labelled(I18n.t("filters.label.minMinutes"), minMinutes), 2, 1);
+        grid.add(labelled(I18n.t("filters.label.maxMinutes"), maxMinutes), 3, 1);
 
         grid.add(buildClearRow(), 0, 2, 4, 1);
         return grid;
@@ -211,7 +213,7 @@ public class SessionFilterPane extends VBox {
     }
 
     private HBox buildClearRow() {
-        Button clear = new Button("Clear filters");
+        Button clear = new Button(I18n.t("filters.clear"));
         clear.getStyleClass().add("action-button");
         clear.setOnAction(event -> clearFilters());
 

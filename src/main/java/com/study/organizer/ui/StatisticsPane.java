@@ -14,7 +14,6 @@ import javafx.scene.layout.VBox;
 
 import java.time.DayOfWeek;
 import java.time.format.TextStyle;
-import java.util.Locale;
 import java.util.Optional;
 
 /**
@@ -25,17 +24,23 @@ import java.util.Optional;
  */
 public class StatisticsPane extends ScrollPane {
 
-    private final StatTile totalTime = new StatTile("Total study time", "0m");
-    private final StatTile totalPoints = new StatTile("Total points", "0");
-    private final StatTile totalSessions = new StatTile("Total sessions", "0");
-    private final StatTile averageSession = new StatTile("Average session", "0m");
-    private final StatTile longestSession = new StatTile("Longest session", "-");
-    private final StatTile shortestSession = new StatTile("Shortest session", "-");
-    private final StatTile averageDaily = new StatTile("Average per day", "0m");
-    private final StatTile averageWeekly = new StatTile("Average per week", "0m");
-    private final StatTile averageMonthly = new StatTile("Average per month", "0m");
-    private final StatTile bestWeekday = new StatTile("Most productive day", "-");
-    private final StatTile worstWeekday = new StatTile("Least productive day", "-");
+    private final StatTile totalTime = new StatTile(I18n.t("statistics.tile.totalTime"), "0m");
+    private final StatTile totalPoints = new StatTile(I18n.t("statistics.tile.totalPoints"), "0");
+    private final StatTile totalSessions = new StatTile(I18n.t("statistics.tile.totalSessions"), "0");
+    private final StatTile averageSession =
+            new StatTile(I18n.t("statistics.tile.averageSession"), "0m");
+    private final StatTile longestSession =
+            new StatTile(I18n.t("statistics.tile.longestSession"), "-");
+    private final StatTile shortestSession =
+            new StatTile(I18n.t("statistics.tile.shortestSession"), "-");
+    private final StatTile averageDaily =
+            new StatTile(I18n.t("statistics.tile.averageDaily"), "0m");
+    private final StatTile averageWeekly =
+            new StatTile(I18n.t("statistics.tile.averageWeekly"), "0m");
+    private final StatTile averageMonthly =
+            new StatTile(I18n.t("statistics.tile.averageMonthly"), "0m");
+    private final StatTile bestWeekday = new StatTile(I18n.t("statistics.tile.bestWeekday"), "-");
+    private final StatTile worstWeekday = new StatTile(I18n.t("statistics.tile.worstWeekday"), "-");
 
     /**
      * Builds the statistics screen.
@@ -43,14 +48,13 @@ public class StatisticsPane extends ScrollPane {
      * @param view the sessions currently in view, after the shared filters
      */
     public StatisticsPane(FilteredSessionView view) {
-        Label heading = new Label("Statistics");
+        Label heading = new Label(I18n.t("nav.statistics"));
         heading.getStyleClass().add("chart-title");
 
         // These figures follow the filter bar, so the heading has to say so —
         // otherwise a total of twelve hours would look like a bug to someone who
         // has studied for eighty.
-        Label subheading = new Label(
-                "For the sessions currently in view. Clear the filters above to see all time.");
+        Label subheading = new Label(I18n.t("statistics.subheading"));
         subheading.getStyleClass().add("stat-caption");
 
         FlowPane tiles = new FlowPane(14, 14,
@@ -99,7 +103,7 @@ public class StatisticsPane extends ScrollPane {
 
     private static String describeWeekday(Optional<DayOfWeek> day) {
         return day
-                .map(value -> value.getDisplayName(TextStyle.FULL, Locale.ENGLISH))
+                .map(value -> value.getDisplayName(TextStyle.FULL, I18n.getLanguage().locale()))
                 .orElse("-");
     }
 }

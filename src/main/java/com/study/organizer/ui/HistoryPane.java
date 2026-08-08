@@ -31,7 +31,6 @@ import javafx.scene.layout.VBox;
 import java.time.ZoneId;
 import java.time.format.DateTimeFormatter;
 import java.util.HashMap;
-import java.util.Locale;
 import java.util.Map;
 import java.util.Optional;
 
@@ -51,7 +50,7 @@ import java.util.Optional;
 public class HistoryPane extends VBox {
 
     private static final DateTimeFormatter DATE_FORMAT =
-            DateTimeFormatter.ofPattern("EEE d MMM yyyy", Locale.ENGLISH);
+            DateTimeFormatter.ofPattern("EEE d MMM yyyy", I18n.getLanguage().locale());
 
     private static final DateTimeFormatter TIME_FORMAT =
             DateTimeFormatter.ofPattern("HH:mm");
@@ -124,15 +123,16 @@ public class HistoryPane extends VBox {
         // preferred widths, so they are set to reflect how much room each column
         // deserves rather than an exact pixel count. Free text gets the most.
         table.getColumns().setAll(
-                textColumn("Date", 130, session ->
+                textColumn(I18n.t("history.column.date"), 130, session ->
                         session.getStartedAt().atZone(ZoneId.systemDefault()).format(DATE_FORMAT)),
-                textColumn("Start", 60, session ->
+                textColumn(I18n.t("history.column.start"), 60, session ->
                         session.getStartedAt().atZone(ZoneId.systemDefault()).format(TIME_FORMAT)),
-                textColumn("Category", 110, StudySession::getCategory),
+                textColumn(I18n.t("history.column.category"), 110, StudySession::getCategory),
                 durationColumn(),
                 pointsColumn(),
-                wrappingColumn("Summary", 330, StudySession::getSummary),
-                wrappingColumn("Observations", 230, StudySession::getObservations));
+                wrappingColumn(I18n.t("history.column.summary"), 330, StudySession::getSummary),
+                wrappingColumn(I18n.t("history.column.observations"), 230,
+                        StudySession::getObservations));
 
         // Double-clicking a row is the fastest way to open it, and it is what
         // people try first in any table of records.
@@ -168,9 +168,7 @@ public class HistoryPane extends VBox {
     }
 
     private Label buildPlaceholder() {
-        Label placeholder = new Label(
-                "No sessions yet. Time one on the Dashboard, or use \"Add past session\" "
-                        + "to record studying that was not timed.");
+        Label placeholder = new Label(I18n.t("history.placeholder"));
         placeholder.getStyleClass().add("empty-state");
         placeholder.setWrapText(true);
         return placeholder;
@@ -224,7 +222,7 @@ public class HistoryPane extends VBox {
      * alphabetically would put the shorter session first.
      */
     private TableColumn<StudySession, Long> durationColumn() {
-        TableColumn<StudySession, Long> column = new TableColumn<>("Duration");
+        TableColumn<StudySession, Long> column = new TableColumn<>(I18n.t("history.column.duration"));
         column.setCellValueFactory(cell ->
                 new ReadOnlyObjectWrapper<>(cell.getValue().getDurationSeconds()));
         column.setCellFactory(ignored -> new TableCell<>() {
@@ -240,7 +238,7 @@ public class HistoryPane extends VBox {
 
     /** The points column, sorted numerically for the same reason as duration. */
     private TableColumn<StudySession, Double> pointsColumn() {
-        TableColumn<StudySession, Double> column = new TableColumn<>("Points");
+        TableColumn<StudySession, Double> column = new TableColumn<>(I18n.t("history.column.points"));
         column.setCellValueFactory(cell ->
                 new ReadOnlyObjectWrapper<>(cell.getValue().getPoints()));
         column.setCellFactory(ignored -> new TableCell<>() {
@@ -257,26 +255,24 @@ public class HistoryPane extends VBox {
     // -------------------------------------------------------------- toolbars
 
     private HBox buildToolbar() {
-        Label heading = new Label("Session history");
+        Label heading = new Label(I18n.t("history.heading"));
         heading.getStyleClass().add("chart-title");
 
-        Button addButton = new Button("Add past session");
+        Button addButton = new Button(I18n.t("history.add"));
         addButton.getStyleClass().addAll("action-button", "primary-button");
         addButton.setOnAction(event -> addSession());
 
-        Button editButton = new Button("Edit");
+        Button editButton = new Button(I18n.t("common.edit"));
         editButton.getStyleClass().add("action-button");
         editButton.setOnAction(event -> editSession(selected()));
 
-        Button deleteButton = new Button("Delete");
+        Button deleteButton = new Button(I18n.t("common.delete"));
         deleteButton.getStyleClass().addAll("action-button", "danger-button");
         deleteButton.setOnAction(event -> deleteSession(selected()));
 
-        Button openFolderButton = new Button("Open folder");
+        Button openFolderButton = new Button(I18n.t("history.openFolder"));
         openFolderButton.getStyleClass().add("action-button");
-        openFolderButton.setTooltip(new Tooltip(
-                "Open this category's folder in Obsidian, or the whole vault if "
-                        + "no category is filtered."));
+        openFolderButton.setTooltip(new Tooltip(I18n.t("history.openFolder.tooltip")));
         openFolderButton.setOnAction(event -> openFolderInObsidian());
 
         // Edit and delete act on a row, so they stay unavailable until one is
@@ -310,7 +306,7 @@ public class HistoryPane extends VBox {
 
         String problem = ObsidianLauncher.openFolder(folder);
         if (problem != null) {
-            Dialogs.showWarning("Could not open Obsidian", problem);
+            Dialogs.showWarning(I18n.t("common.obsidianError.title"), problem);
         }
     }
 
@@ -335,7 +331,7 @@ public class HistoryPane extends VBox {
         summaryLabel.getStyleClass().setAll("stat-caption");
 
         if (filtered.isEmpty()) {
-            summaryLabel.setText("No sessions match these filters.");
+            summaryLabel.setText(I18n.t("history.noMatch"));
             return;
         }
 
@@ -344,17 +340,17 @@ public class HistoryPane extends VBox {
                 .sum();
         long averageSeconds = totalSeconds / filtered.size();
 
-        String text = String.format(
-                "%d session%s  -  %s total  -  %s points  -  %s average",
+        String key = filtered.size() == 1 ? "history.summary.singular" : "history.summary.plural";
+        String text = I18n.t(key,
                 filtered.size(),
-                filtered.size() == 1 ? "" : "s",
                 DurationFormatter.formatShort(totalSeconds),
                 PointsCalculator.format(PointsCalculator.fromSeconds(totalSeconds)),
                 DurationFormatter.formatShort(averageSeconds));
 
         // Naming the leading category is only informative when more than one is
         // in view; with a category filtered it would just repeat the filter.
-        summaryLabel.setText(text + topCategoryOf().map(top -> "  -  mostly " + top).orElse(""));
+        summaryLabel.setText(text
+                + topCategoryOf().map(top -> I18n.t("history.summary.mostly", top)).orElse(""));
     }
 
     /**
@@ -391,7 +387,7 @@ public class HistoryPane extends VBox {
         created.ifPresent(session -> data.saveSession(
                 session,
                 () -> { },
-                error -> Dialogs.showError("Could not add the session", error)));
+                error -> Dialogs.showError(I18n.t("history.addError"), error)));
     }
 
     /** Opens the form filled in, and overwrites the record on save. */
@@ -406,7 +402,7 @@ public class HistoryPane extends VBox {
         edited.ifPresent(updated -> data.updateSession(
                 updated,
                 () -> { },
-                error -> Dialogs.showError("Could not save your changes", error)));
+                error -> Dialogs.showError(I18n.t("history.editError"), error)));
     }
 
     /** Removes a session, after confirming, since it cannot be undone. */
@@ -417,16 +413,15 @@ public class HistoryPane extends VBox {
 
         String when = session.getStartedAt().atZone(ZoneId.systemDefault()).format(DATE_FORMAT);
         boolean confirmed = Dialogs.confirm(
-                "Delete this session?",
-                session.getCategory() + " on " + when + ", "
-                        + DurationFormatter.formatShort(session.getDurationSeconds())
-                        + ". This cannot be undone.");
+                I18n.t("history.delete.confirm.title"),
+                I18n.t("history.delete.confirm.body", session.getCategory(), when,
+                        DurationFormatter.formatShort(session.getDurationSeconds())));
 
         if (confirmed) {
             data.deleteSession(
                     session.getId(),
                     () -> { },
-                    error -> Dialogs.showError("Could not delete the session", error));
+                    error -> Dialogs.showError(I18n.t("history.deleteError"), error));
         }
     }
 }

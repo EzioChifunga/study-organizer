@@ -51,8 +51,8 @@ public class NoteViewerPane extends VBox {
     private final Label pathLabel = new Label();
     private final TextArea bodyArea = new TextArea();
     private final FlowPane linkBar = new FlowPane(8, 8);
-    private final Button backButton = new Button("< Back");
-    private final Button obsidianButton = new Button("Open in Obsidian");
+    private final Button backButton = new Button(I18n.t("common.back"));
+    private final Button obsidianButton = new Button(I18n.t("common.openInObsidian"));
 
     /** The trail of notes visited, so Back can retrace it. */
     private final Deque<String> history = new ArrayDeque<>();
@@ -111,7 +111,7 @@ public class NoteViewerPane extends VBox {
     }
 
     private VBox buildLinkSection() {
-        Label caption = new Label("References");
+        Label caption = new Label(I18n.t("noteviewer.references"));
         caption.getStyleClass().add("stat-caption");
 
         ScrollPane scroller = new ScrollPane(linkBar);
@@ -141,7 +141,7 @@ public class NoteViewerPane extends VBox {
         try {
             markdown = data.readNote(relativePath);
         } catch (RuntimeException e) {
-            titleLabel.setText("Could not open this note");
+            titleLabel.setText(I18n.t("noteviewer.error.title"));
             pathLabel.setText(relativePath);
             bodyArea.setText(e.getMessage());
             linkBar.getChildren().clear();
@@ -175,7 +175,7 @@ public class NoteViewerPane extends VBox {
         linkBar.getChildren().clear();
 
         if (titles.isEmpty()) {
-            Label none = new Label("This note does not reference anything.");
+            Label none = new Label(I18n.t("noteviewer.noLinks"));
             none.getStyleClass().add("stat-caption");
             linkBar.getChildren().add(none);
             return;
@@ -189,10 +189,9 @@ public class NoteViewerPane extends VBox {
 
             if (target == null) {
                 link.setDisable(true);
-                link.setText(title + "  (missing)");
+                link.setText(I18n.t("noteviewer.link.missing", title));
                 link.setTooltip(new javafx.scene.control.Tooltip(
-                        "No note called \"" + title + "\" in the " + category + " folder. "
-                                + "It may have been renamed or moved in Obsidian."));
+                        I18n.t("noteviewer.link.missingTooltip", title, category)));
             } else {
                 link.setOnAction(event -> show(target));
             }
@@ -214,7 +213,7 @@ public class NoteViewerPane extends VBox {
 
         String problem = ObsidianLauncher.openNote(data.getVault().getRoot().resolve(currentPath));
         if (problem != null) {
-            Dialogs.showWarning("Could not open Obsidian", problem);
+            Dialogs.showWarning(I18n.t("common.obsidianError.title"), problem);
         }
     }
 
@@ -223,10 +222,9 @@ public class NoteViewerPane extends VBox {
         currentPath = null;
         history.clear();
 
-        titleLabel.setText("No session selected");
+        titleLabel.setText(I18n.t("noteviewer.empty.title"));
         pathLabel.setText("");
-        bodyArea.setText("Select a session in the table above to read its note "
-                + "and follow its references.");
+        bodyArea.setText(I18n.t("noteviewer.empty.body"));
         linkBar.getChildren().clear();
 
         updateButtons();

@@ -76,10 +76,10 @@ public class NotePickerPane extends VBox {
 
         setSpacing(6);
 
-        Label caption = new Label("Reference notes from this category (optional)");
+        Label caption = new Label(I18n.t("notepicker.caption"));
         caption.getStyleClass().add("stat-caption");
 
-        searchField.setPromptText("Search notes by title");
+        searchField.setPromptText(I18n.t("notepicker.search.prompt"));
         searchField.textProperty().addListener((observable, old, current) -> applySearch());
 
         list.setItems(visible);
@@ -171,16 +171,15 @@ public class NotePickerPane extends VBox {
 
     private void updateStatus() {
         if (category == null || category.isBlank()) {
-            statusLabel.setText("Choose a category first.");
+            statusLabel.setText(I18n.t("notepicker.status.noCategory"));
             return;
         }
         if (available.isEmpty()) {
-            statusLabel.setText(
-                    "No other notes in \"" + category + "\" yet. Add some in Obsidian to link them.");
+            statusLabel.setText(I18n.t("notepicker.status.empty", category));
             return;
         }
-        statusLabel.setText(selected.size() + " of " + available.size()
-                + " notes in \"" + category + "\" selected.");
+        statusLabel.setText(
+                I18n.t("notepicker.status.count", selected.size(), available.size(), category));
     }
 
     /**

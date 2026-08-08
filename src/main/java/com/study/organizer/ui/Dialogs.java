@@ -25,7 +25,7 @@ public final class Dialogs {
     public static void showWarning(String header, String message) {
         Alert alert = new Alert(Alert.AlertType.WARNING);
         ThemeManager.styleDialog(alert.getDialogPane());
-        alert.setTitle("Study Organizer");
+        alert.setTitle(I18n.t("common.appName"));
         alert.setHeaderText(header);
         alert.setContentText(message);
         alert.showAndWait();
@@ -44,7 +44,7 @@ public final class Dialogs {
     public static void showError(String header, Throwable error) {
         Alert alert = new Alert(Alert.AlertType.ERROR);
         ThemeManager.styleDialog(alert.getDialogPane());
-        alert.setTitle("Study Organizer");
+        alert.setTitle(I18n.t("common.appName"));
         alert.setHeaderText(header);
         alert.setContentText(error.getMessage() == null
                 ? error.getClass().getSimpleName()
@@ -68,7 +68,7 @@ public final class Dialogs {
     public static boolean confirm(String header, String message) {
         Alert alert = new Alert(Alert.AlertType.CONFIRMATION);
         ThemeManager.styleDialog(alert.getDialogPane());
-        alert.setTitle("Study Organizer");
+        alert.setTitle(I18n.t("common.appName"));
         alert.setHeaderText(header);
         alert.setContentText(message);
 
